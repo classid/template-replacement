@@ -1,0 +1,15 @@
+{
+    "name": "classid/template-replacement",
+    "autoload": {
+        "psr-4": {
+            "Classid\\TemplateReplacement\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Iqbal Atma Muliawan",
+            "email": "iqbalatma@gmail.com"
+        }
+    ],
+    "require": {}
+}
