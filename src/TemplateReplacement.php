@@ -7,7 +7,7 @@ class TemplateReplacement
 {
     private const REGEX_PATTERN = '/\{(\w+)\}/';
     private const ADDITIONAL_CLASS_NAMESPACE = "App\Services\GeneralReplacement\G";
-    private const ADDITIONAL_CLASS_DIRECTORY = "app/Services/GeneralReplacement/G";
+    private const ADDITIONAL_CLASS_DIRECTORY = "app/Services/GeneralReplacement";
     private array $allKeyThatNeedToReplace = [];
 
     /**
