@@ -2,6 +2,8 @@
 
 namespace Classid\TemplateReplacement\Traits;
 
+use Classid\TemplateReplacement\Exceptions\MissingRequiredParameterException;
+
 trait HasInformation
 {
     protected array $methodParams;
@@ -9,6 +11,7 @@ trait HasInformation
     /**
      * @param string $key
      * @return mixed
+     * @throws MissingRequiredParameterException
      */
     public function getParameter(string $key): mixed
     {
@@ -16,6 +19,6 @@ trait HasInformation
             return $this->methodParams[$key];
         }
 
-        return null;
+        throw new MissingRequiredParameterException("Missing required parameter key $key on ". __FUNCTION__. " from " . __CLASS__);
     }
 }
