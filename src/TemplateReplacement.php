@@ -14,10 +14,11 @@ class TemplateReplacement
      */
     private function getAllAdditionalFile(): array
     {
-        if (!is_dir(is_dir(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement")))) {
+        $dirPath = base_path(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement"));
+        if (!is_dir($dirPath)) {
             return [];
         }
-        return array_values(array_filter(scandir(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement")), function ($file) {
+        return array_values(array_filter(scandir($dirPath), function ($file) {
             return str_contains($file, '.php');
         }));
     }
@@ -85,7 +86,6 @@ class TemplateReplacement
     {
         $instance = self::getInstance();
         $refectionClass = new \ReflectionClass($instance);
-
 
         foreach ($instance->getAllKeyThatNeedToReplace($templatePattern) as $key => $placeholder) {
             $valueToReplace = null;
