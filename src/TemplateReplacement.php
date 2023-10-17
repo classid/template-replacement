@@ -1,4 +1,5 @@
 <?php
+
 namespace Classid\TemplateReplacement;
 
 use function PHPUnit\Framework\directoryExists;
@@ -6,8 +7,6 @@ use function PHPUnit\Framework\directoryExists;
 class TemplateReplacement
 {
     private const REGEX_PATTERN = '/\{(\w+)\}/';
-    private const ADDITIONAL_CLASS_NAMESPACE = "App\Services\GeneralReplacement\G";
-    private const ADDITIONAL_CLASS_DIRECTORY = "app/Services/GeneralReplacement";
     private array $allKeyThatNeedToReplace = [];
 
     /**
@@ -15,10 +14,10 @@ class TemplateReplacement
      */
     private function getAllAdditionalFile(): array
     {
-        if (!is_dir(is_dir(self::ADDITIONAL_CLASS_DIRECTORY))){
+        if (!is_dir(is_dir(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement")))) {
             return [];
         }
-        return array_values(array_filter(scandir(self::ADDITIONAL_CLASS_DIRECTORY), function ($file) {
+        return array_values(array_filter(scandir(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement")), function ($file) {
             return str_contains($file, '.php');
         }));
     }
@@ -27,10 +26,11 @@ class TemplateReplacement
      * @param string $filename
      * @return mixed|null
      */
-    private function getAdditionalClassInstance(string $filename):?object{
+    private function getAdditionalClassInstance(string $filename): ?object
+    {
         $className = pathinfo($filename, PATHINFO_FILENAME);
-        $fullClassName = self::ADDITIONAL_CLASS_NAMESPACE."\\$className";
-        if (class_exists($fullClassName)){
+        $fullClassName = config("templatereplacement.additional_class_namespace", "App\Services\GeneralReplacement") . "\\$className";
+        if (class_exists($fullClassName)) {
             return new $fullClassName();
         }
         return null;
@@ -40,8 +40,8 @@ class TemplateReplacement
     {
         $name = str_replace("_", "", $name);
 
-        foreach ($this->getAllAdditionalFile() as $file){
-            if ($instance = $this->getAdditionalClassInstance($file)){
+        foreach ($this->getAllAdditionalFile() as $file) {
+            if ($instance = $this->getAdditionalClassInstance($file)) {
                 if (method_exists($instance, $name)) {
                     return $instance->{$name}($arguments);
                 }
@@ -50,11 +50,12 @@ class TemplateReplacement
 
         return null;
     }
+
     public function __get(string $name)
     {
         $name = str_replace("_", "", $name);
-        foreach ($this->getAllAdditionalFile() as $file){
-            if ($instance = $this->getAdditionalClassInstance($file)){
+        foreach ($this->getAllAdditionalFile() as $file) {
+            if ($instance = $this->getAdditionalClassInstance($file)) {
                 if (property_exists($instance, $name)) {
                     return $instance->{$name};
                 }
@@ -94,33 +95,27 @@ class TemplateReplacement
              */
             if (isset($priorityReplacementData[$placeholder])) {
                 $valueToReplace = $priorityReplacementData[$placeholder];
-            }
-
-            /**
+            } /**
              * method from overloading defined namespace
              * use _ to overload method from another class and override current class method
              */
-            else if($value = $instance->{"_".self::getCamelCaseMethodNameFromSnakeCaseProperty($placeholder)}()){
+            else if ($value = $instance->{"_" . self::getCamelCaseMethodNameFromSnakeCaseProperty($placeholder)}()) {
                 $valueToReplace = $value;
-            }
-            /**
+            } /**
              * overload from another class to search method that does not exist on current class
              */
-            else if($value = $instance->{self::getCamelCaseMethodNameFromSnakeCaseProperty($placeholder)}()){
+            else if ($value = $instance->{self::getCamelCaseMethodNameFromSnakeCaseProperty($placeholder)}()) {
                 $valueToReplace = $value;
-            }
-            /**
+            } /**
              * overload property
              * use _ to overload property from another class and override current class property
              */
-            else if($value = $instance->{"_".$placeholder}){
+            else if ($value = $instance->{"_" . $placeholder}) {
                 $valueToReplace = $value;
 
-            }
-            else if($value = $instance->{$placeholder}){
+            } else if ($value = $instance->{$placeholder}) {
                 $valueToReplace = $value;
-            }
-            /**
+            } /**
              * method or property from current class
              */
             else if ($refectionClass->hasMethod(self::getCamelCaseMethodNameFromSnakeCaseProperty($placeholder))) {
