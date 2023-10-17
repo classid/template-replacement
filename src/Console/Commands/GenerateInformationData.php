@@ -26,6 +26,14 @@ class GenerateInformationData extends Command
      */
     public function handle()
     {
+        $headers = ['Name', 'Email', 'Age'];
+
+        $data = [
+            ['John Doe', 'johndoe@example.com', 28],
+            ['Jane Smith', 'jane@example.com', 25]
+        ];
+
+        $this->table($headers, $data);
         dd(TemplateReplacement::getAllData());
     }
 }
