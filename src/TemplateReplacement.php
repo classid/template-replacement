@@ -90,10 +90,10 @@ class TemplateReplacement extends BaseTemplateReplacement
 
     /**
      * @param array $additionalMethodParams
-     * @return array
+     * @return Collection
+     * @throws InformationIsNotStringException
      * @throws InvalidBlueprintException
      * @throws ReflectionException
-     * @throws InformationIsNotStringException
      */
     public static function getAllData(array $additionalMethodParams = []): Collection
     {
