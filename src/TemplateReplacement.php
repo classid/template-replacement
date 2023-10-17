@@ -2,88 +2,30 @@
 
 namespace Classid\TemplateReplacement;
 
-use function PHPUnit\Framework\directoryExists;
+use Classid\TemplateReplacement\Abstracts\BaseTemplateReplacement;
 
-class TemplateReplacement
+class TemplateReplacement extends BaseTemplateReplacement
 {
-    private array $allKeyThatNeedToReplace = [];
-
     /**
-     * @return array
+     * Description : use to build instance for static method
+     * @return static
      */
-    private function getAllAdditionalFile(): array
-    {
-        $dirPath = base_path(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement"));
-        if (!is_dir($dirPath)) {
-            return [];
-        }
-        return array_values(array_filter(scandir($dirPath), function ($file) {
-            return str_contains($file, '.php');
-        }));
-    }
-
-    /**
-     * @param string $filename
-     * @return mixed|null
-     */
-    private function getAdditionalClassInstance(string $filename): ?object
-    {
-        $className = pathinfo($filename, PATHINFO_FILENAME);
-        $fullClassName = config("templatereplacement.additional_class_namespace", "App\Services\GeneralReplacement") . "\\$className";
-        if (class_exists($fullClassName)) {
-            return new $fullClassName();
-        }
-        return null;
-    }
-
-    public function __call(string $name, array $arguments)
-    {
-        $name = str_replace("_", "", $name);
-
-        foreach ($this->getAllAdditionalFile() as $file) {
-            if ($instance = $this->getAdditionalClassInstance($file)) {
-                if (method_exists($instance, $name)) {
-                    return $instance->{$name}($arguments);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public function __get(string $name)
-    {
-        $name = str_replace("_", "", $name);
-        foreach ($this->getAllAdditionalFile() as $file) {
-            if ($instance = $this->getAdditionalClassInstance($file)) {
-                if (property_exists($instance, $name)) {
-                    return $instance->{$name};
-                }
-            }
-        }
-        return null;
-    }
-
-    private static function getInstance(): static
+    public static function build(): static
     {
         return new static();
     }
 
-    private function getAllKeyThatNeedToReplace(string $templatePattern)
-    {
-        preg_match_all(config("templatereplacement.regex_pattern", '/\{(\w+)\}/'), $templatePattern, $this->allKeyThatNeedToReplace);
-        return $this->allKeyThatNeedToReplace[1];
-    }
 
-    private static function getCamelCaseMethodNameFromSnakeCaseProperty(string $name): string
+    /**
+     * Description : use to change template placeholder into available data
+     *
+     * @param string $templatePattern
+     * @param array $priorityReplacementData
+     * @return string
+     */
+    public static function execute(string $templatePattern, array $priorityReplacementData = []): string
     {
-        $methodName = str_replace("_", "", ucwords($name));
-        return "get$methodName";
-    }
-
-    public static function execute(string $templatePattern, $priorityReplacementData = []): string
-    {
-        $instance = self::getInstance();
+        $instance = self::build();
         $refectionClass = new \ReflectionClass($instance);
 
         foreach ($instance->getAllKeyThatNeedToReplace($templatePattern) as $key => $placeholder) {
