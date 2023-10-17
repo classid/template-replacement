@@ -2,9 +2,14 @@
 
 namespace Classid\TemplateReplacement\Abstracts;
 
+use Classid\TemplateReplacement\Exceptions\InvalidBlueprintException;
+use Classid\TemplateReplacement\Interfaces\InformationInterface;
+
 class BaseTemplateReplacement
 {
+    protected const REGEX_PATTERN = '/\{(\w+)\}/';
     protected array $allKeyThatNeedToReplace = [];
+    protected array $additionalMethodParams = [];
 
     /**
      * Description : use to get method from another available class
@@ -67,7 +72,7 @@ class BaseTemplateReplacement
      */
     public function getAllKeyThatNeedToReplace(string $templatePattern): array
     {
-        preg_match_all(config("templatereplacement.regex_pattern", '/\{(\w+)\}/'), $templatePattern, $this->allKeyThatNeedToReplace);
+        preg_match_all(self::REGEX_PATTERN, $templatePattern, $this->allKeyThatNeedToReplace);
         return $this->allKeyThatNeedToReplace[1];
     }
 
@@ -90,13 +95,19 @@ class BaseTemplateReplacement
      * Description : this will return back instance of additional class for specified file
      * @param string $filename
      * @return mixed|null
+     * @throws InvalidBlueprintException
      */
     public function getAdditionalClassInstance(string $filename): ?object
     {
         $className = pathinfo($filename, PATHINFO_FILENAME);
         $fullClassName = config("templatereplacement.additional_class_namespace", "App\Services\GeneralReplacement") . "\\$className";
         if (class_exists($fullClassName)) {
-            return new $fullClassName();
+            $instance = new $fullClassName($this->additionalMethodParams);
+            if (!$instance instanceof InformationInterface) {
+                throw new InvalidBlueprintException("Invalid class interface. Class $fullClassName should implement Classid\TemplateReplacement\Interfaces\InformationInterface");
+            }
+
+            return $instance;
         }
         return null;
     }

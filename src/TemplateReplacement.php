@@ -20,13 +20,16 @@ class TemplateReplacement extends BaseTemplateReplacement
      * Description : use to change template placeholder into available data
      *
      * @param string $templatePattern
+     * @param array $additionalMethodParams
      * @param array $priorityReplacementData
      * @return string
      */
-    public static function execute(string $templatePattern, array $priorityReplacementData = []): string
+    public static function execute(string $templatePattern, array $additionalMethodParams = [], array $priorityReplacementData = []): string
     {
         $instance = self::build();
         $refectionClass = new \ReflectionClass($instance);
+        $instance->additionalMethodParams = $additionalMethodParams;
+
 
         foreach ($instance->getAllKeyThatNeedToReplace($templatePattern) as $key => $placeholder) {
             $valueToReplace = null;
