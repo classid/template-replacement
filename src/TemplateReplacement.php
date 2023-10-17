@@ -6,7 +6,6 @@ use function PHPUnit\Framework\directoryExists;
 
 class TemplateReplacement
 {
-    private const REGEX_PATTERN = '/\{(\w+)\}/';
     private array $allKeyThatNeedToReplace = [];
 
     /**
@@ -72,7 +71,7 @@ class TemplateReplacement
 
     private function getAllKeyThatNeedToReplace(string $templatePattern)
     {
-        preg_match_all(self::REGEX_PATTERN, $templatePattern, $this->allKeyThatNeedToReplace);
+        preg_match_all(config("templatereplacement.regex_pattern", '/\{(\w+)\}/'), $templatePattern, $this->allKeyThatNeedToReplace);
         return $this->allKeyThatNeedToReplace[1];
     }
 
