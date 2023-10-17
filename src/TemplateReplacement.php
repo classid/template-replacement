@@ -3,6 +3,10 @@
 namespace Classid\TemplateReplacement;
 
 use Classid\TemplateReplacement\Abstracts\BaseTemplateReplacement;
+use Classid\TemplateReplacement\Exceptions\InformationIsNotStringException;
+use Classid\TemplateReplacement\Exceptions\InvalidBlueprintException;
+use Illuminate\Support\Collection;
+use ReflectionException;
 
 class TemplateReplacement extends BaseTemplateReplacement
 {
@@ -83,4 +87,51 @@ class TemplateReplacement extends BaseTemplateReplacement
 
         return $templatePattern;
     }
+
+    /**
+     * @param array $additionalMethodParams
+     * @return array
+     * @throws InvalidBlueprintException
+     * @throws ReflectionException
+     * @throws InformationIsNotStringException
+     */
+    public static function getAllData(array $additionalMethodParams = []): Collection
+    {
+        $instance = self::build();
+        $instance->additionalMethodParams = $additionalMethodParams;
+        $allData = collect([]);
+
+        foreach ($instance->getAllAdditionalFile() as $file) {
+            $additionalClassInstance = $instance->getAdditionalClassInstance($file);
+
+            $reflectionClass = new \ReflectionClass($additionalClassInstance);
+            foreach ($reflectionClass->getMethods() as $method) {
+                if ($method->name === "__construct" || $method->name === "getParameter") {
+                    continue;
+                }
+
+                $value = $method->invoke($additionalClassInstance);
+                if (!is_string($value)) {
+                    throw new InformationIsNotStringException("Data information of method name $method->name is not string");
+                }
+                $allData->put(self::getSnakeCaseFromCamelCaseMethodName($method->name), $value);
+            }
+
+            foreach ($reflectionClass->getProperties() as $property) {
+                if ($property->name === "methodParams" || !$property->isInitialized($additionalClassInstance)) {
+                    continue;
+                }
+
+                $value = $property->getValue($additionalClassInstance);
+                if (!is_string($value)) {
+                    throw new InformationIsNotStringException("Data information of method name $property->name is not string");
+                }
+
+                $allData->put($property->name, $property->getValue($additionalClassInstance));
+            }
+        }
+
+        return $allData;
+    }
 }
+

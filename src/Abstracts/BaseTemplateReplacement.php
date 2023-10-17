@@ -2,11 +2,13 @@
 
 namespace Classid\TemplateReplacement\Abstracts;
 
+use Classid\TemplateReplacement\Exceptions\InformationIsNotStringException;
 use Classid\TemplateReplacement\Exceptions\InvalidBlueprintException;
 use Classid\TemplateReplacement\Interfaces\InformationInterface;
 
 class BaseTemplateReplacement
 {
+    public int $name=1;
     protected const REGEX_PATTERN = '/\{(\w+)\}/';
     protected array $allKeyThatNeedToReplace = [];
     protected array $additionalMethodParams = [];
@@ -16,6 +18,8 @@ class BaseTemplateReplacement
      * @param string $name
      * @param array $arguments
      * @return null
+     * @throws InvalidBlueprintException
+     * @throws InformationIsNotStringException
      */
     public function __call(string $name, array $arguments)
     {
@@ -23,6 +27,9 @@ class BaseTemplateReplacement
         foreach ($this->getAllAdditionalFile() as $file) {
             $instance = $this->getAdditionalClassInstance($file);
             if ($instance && method_exists($instance, $name)) {
+                if (!is_string($instance->{$name}($arguments))){
+                    throw new InformationIsNotStringException("Data information of method name $name is not string");
+                }
                 return $instance->{$name}($arguments);
             }
         }
@@ -35,6 +42,8 @@ class BaseTemplateReplacement
      *
      * @param string $name
      * @return null
+     * @throws InvalidBlueprintException
+     * @throws InformationIsNotStringException
      */
     public function __get(string $name)
     {
@@ -42,6 +51,9 @@ class BaseTemplateReplacement
         foreach ($this->getAllAdditionalFile() as $file) {
             $instance = $this->getAdditionalClassInstance($file);
             if ($instance && property_exists($instance, $name)) {
+                if (!is_string($instance->{$name})){
+                    throw new InformationIsNotStringException("Data information of property name $name is not string");
+                }
                 return $instance->{$name};
             }
         }
@@ -50,12 +62,34 @@ class BaseTemplateReplacement
 
 
     /**
-     * Description : transform snake case from camel case string
+     * Description : transform to snake case from camel case string
+     *  ex: transfer full_name into getFullName
+     * @param string $methodName
+     * @return string
+     */
+    protected static function getSnakeCaseFromCamelCaseMethodName(string $methodName): string
+    {
+        if (str_starts_with($methodName, 'get')) {
+            $methodName = substr($methodName, 3);
+        }
+
+        $result = preg_replace('/[A-Z]/', '_$0', $methodName);
+        $result = strtolower($result);
+
+        if (str_starts_with($result, '_')) {
+            $result = substr($result, 1);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Description : transform to camel case from snake case string
      * ex: transfer full_name into getFullName
      * @param string $name
      * @return string
      */
-    public static function getCamelCaseMethodNameFromSnakeCaseProperty(string $name): string
+    protected static function getCamelCaseMethodNameFromSnakeCaseProperty(string $name): string
     {
         $methodName = str_replace("_", "", ucwords($name));
         return "get$methodName";
@@ -70,7 +104,7 @@ class BaseTemplateReplacement
      * @param string $templatePattern
      * @return array
      */
-    public function getAllKeyThatNeedToReplace(string $templatePattern): array
+    protected function getAllKeyThatNeedToReplace(string $templatePattern): array
     {
         preg_match_all(self::REGEX_PATTERN, $templatePattern, $this->allKeyThatNeedToReplace);
         return $this->allKeyThatNeedToReplace[1];
@@ -80,7 +114,7 @@ class BaseTemplateReplacement
      * Description : use to get all additional file for custom information from defined directory
      * @return array
      */
-    public function getAllAdditionalFile(): array
+    protected function getAllAdditionalFile(): array
     {
         $dirPath = base_path(config("templatereplacement.additional_class_directory", "app/Services/GeneralReplacement"));
         if (!is_dir($dirPath)) {
@@ -97,7 +131,7 @@ class BaseTemplateReplacement
      * @return mixed|null
      * @throws InvalidBlueprintException
      */
-    public function getAdditionalClassInstance(string $filename): ?object
+    protected function getAdditionalClassInstance(string $filename): ?object
     {
         $className = pathinfo($filename, PATHINFO_FILENAME);
         $fullClassName = config("templatereplacement.additional_class_namespace", "App\Services\GeneralReplacement") . "\\$className";
