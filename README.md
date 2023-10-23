@@ -42,17 +42,9 @@ You can use public property on specified class. You can modify class via config
 
 namespace App\Services\GeneralReplacement;
 
-use Classid\TemplateReplacement\Interfaces\InformationInterface;
-use Classid\TemplateReplacement\Traits\HasInformation;
+use Classid\TemplateReplacement\Abstracts\BaseInformation;
 
-class WhatEverClassNameAsLongAsInsideDirectoryAndNamespace implements InformationInterface{
-    use HasInformation;
-
-    public function __construct(array $methodParams = [])
-    {
-        $this->methodParams = $methodParams;
-    }
-
+class WhatEverClassNameAsLongAsInsideDirectoryAndNamespace extends BaseInformation{
     public string $name = "iqbal"
     public string $target = "everyone"
 }
@@ -68,17 +60,9 @@ You also can use public method on specified class. You can modify class via conf
 
 namespace App\Services\GeneralReplacement;
 
-use Classid\TemplateReplacement\Interfaces\InformationInterface;
-use Classid\TemplateReplacement\Traits\HasInformation;
+use Classid\TemplateReplacement\Abstracts\BaseInformation;
 
-class WhatEverClassNameAsLongAsInsideDirectoryAndNamespace implements InformationInterface{
-    use HasInformation;
-
-    public function __construct(array $methodParams = [])
-    {
-        $this->methodParams = $methodParams;
-    }
-
+class WhatEverClassNameAsLongAsInsideDirectoryAndNamespace extends BaseInformation{
     public function getName(){
       return "iqbal";
     }
@@ -104,18 +88,9 @@ TemplateReplacement::execute("Halo {target}, my name is {name}");
 
 namespace App\Services\GeneralReplacement;
 
-use Classid\TemplateReplacement\Interfaces\InformationInterface;
-use Classid\TemplateReplacement\Traits\HasInformation;
+use Classid\TemplateReplacement\Abstracts\BaseInformation;
 
-class WhatEverClassNameAsLongAsInsideDirectoryAndNamespace  implements InformationInterface{
-    use HasInformation;
-
-    public function __construct(array $methodParams = [])
-    {
-        $this->methodParams = $methodParams;
-    }
-
-
+class WhatEverClassNameAsLongAsInsideDirectoryAndNamespace  extends BaseInformation{
     public function getName(){
       $userId = $this->getParameter("user_id");
       $user = App\Models\User::find($userId);
