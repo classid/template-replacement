@@ -6,7 +6,7 @@ use Classid\TemplateReplacement\Exceptions\InformationIsNotStringException;
 use Classid\TemplateReplacement\Exceptions\InvalidBlueprintException;
 use Classid\TemplateReplacement\Interfaces\InformationInterface;
 
-class BaseTemplateReplacement
+abstract class BaseTemplateReplacement
 {
     protected const REGEX_PATTERN = '/\{(\w+)\}/';
     protected array $allKeyThatNeedToReplace = [];
