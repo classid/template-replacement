@@ -8,7 +8,6 @@ use Classid\TemplateReplacement\Interfaces\InformationInterface;
 
 class BaseTemplateReplacement
 {
-    public int $name=1;
     protected const REGEX_PATTERN = '/\{(\w+)\}/';
     protected array $allKeyThatNeedToReplace = [];
     protected array $additionalMethodParams = [];
